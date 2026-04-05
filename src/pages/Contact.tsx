@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin, Send, MessageSquare, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Mail, Send, MessageSquare, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useState, FormEvent } from 'react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
@@ -41,8 +41,6 @@ export default function Contact() {
             <div className="space-y-8">
               {[
                 { icon: Mail, title: 'Email Us', desc: 'PeachStackAdmin@gmail.com', color: 'bg-blue-50 text-blue-600' },
-                { icon: Phone, title: 'Call Us', desc: '+1 (555) 123-4567', color: 'bg-peach-50 text-peach-600' },
-                { icon: MapPin, title: 'Visit Us', desc: '123 Innovation Way, San Francisco, CA', color: 'bg-indigo-50 text-indigo-600' }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-6">
                   <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-sm", item.color)}>
