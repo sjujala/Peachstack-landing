@@ -110,7 +110,7 @@ export default function ForEmployers() {
             >
               <div className="relative z-10 rounded-3xl bg-white p-2 shadow-2xl border border-slate-100 overflow-hidden">
                 <img
-                  src="/input_file_0.png"
+                  src="/crm-dashboard.png"
                   alt="Peachstack CRM Dashboard"
                   className="rounded-2xl w-full h-auto shadow-inner"
                   referrerPolicy="no-referrer"
@@ -130,7 +130,7 @@ export default function ForEmployers() {
             >
               <div className="relative z-10 rounded-3xl bg-white p-2 shadow-2xl border border-slate-100 overflow-hidden">
                 <img
-                  src="/input_file_1.png"
+                  src="/crm-revenue-pl.png"
                   alt="Revenue & P&L Page"
                   className="rounded-2xl w-full h-auto shadow-inner"
                   referrerPolicy="no-referrer"
