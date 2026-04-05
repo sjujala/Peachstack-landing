@@ -1,44 +1,38 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface PeachLogoProps {
-  size?: number;
   className?: string;
+  size?: number;
 }
 
-const PeachLogo: React.FC<PeachLogoProps> = ({ size = 24, className = "" }) => {
+export function PeachLogo({ className, size = 40 }: PeachLogoProps) {
   return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 100 100" 
-      fill="none" 
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 110"
+      fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={cn(className)}
     >
-      {/* Peach Heart Shape */}
-      <path 
-        d="M50 88C50 88 18 68 18 42C18 26 34 16 50 32C66 16 82 26 82 42C82 68 50 88 50 88Z" 
-        fill="#FF8266" 
+      {/* Green stem */}
+      <path d="M50 28 Q52 18 58 12" stroke="#3a8c3f" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+      {/* Green leaf */}
+      <path d="M58 12 Q72 8 68 22 Q60 26 52 20 Z" fill="#3a8c3f"/>
+      {/* Peach heart outline */}
+      <path
+        d="M50 38 C50 38 28 26 28 44 C28 58 50 74 50 74 C50 74 72 58 72 44 C72 26 50 38 50 38 Z"
+        fill="none"
+        stroke="#E8816A"
+        strokeWidth="5"
+        strokeLinejoin="round"
       />
-      
-      {/* Stem and Leaf */}
-      <path 
-        d="M50 32L50 12" 
-        stroke="#4ADE80" 
-        strokeWidth="6" 
-        strokeLinecap="round"
-      />
-      <path 
-        d="M50 22C65 22 75 8 75 8C75 8 60 2 50 15" 
-        fill="#4ADE80" 
-      />
-
-      {/* Stack Bars */}
-      <rect x="30" y="42" width="40" height="8" rx="2" fill="#FDF6E3" />
-      <rect x="30" y="54" width="40" height="8" rx="2" fill="#FB923C" />
-      <rect x="30" y="66" width="40" height="8" rx="2" fill="#EA580C" />
+      {/* Bar 1: cream */}
+      <rect x="35" y="46" width="30" height="7" rx="3.5" fill="#F5ECD7"/>
+      {/* Bar 2: orange */}
+      <rect x="35" y="56" width="30" height="7" rx="3.5" fill="#E07840"/>
+      {/* Bar 3: dark orange */}
+      <rect x="35" y="66" width="30" height="7" rx="3.5" fill="#C05020"/>
     </svg>
   );
-};
-
-export default PeachLogo;
+}
