@@ -1,0 +1,483 @@
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
+import { Menu, X, GraduationCap, ChevronDown, User, Settings as SettingsIcon, LogOut, Info, Building2, Mail, Twitter, Linkedin, Github, Instagram } from 'lucide-react';
+import PeachLogo from './components/ui/PeachLogo';
+import { useState, useEffect } from 'react';
+import { cn } from './lib/utils';
+import { Toaster, toast } from 'sonner';
+
+// Pages
+import Landing from './pages/Landing';
+import StudentDashboard from './pages/StudentDashboard';
+import EmployerDashboard from './pages/EmployerDashboard';
+import GetStarted from './pages/GetStarted';
+import StudentSignup from './pages/StudentSignup';
+import EmployerOnboarding from './pages/EmployerOnboarding';
+import ForEmployers from './pages/ForEmployers';
+import Login from './pages/Login';
+import Workspace from './pages/Workspace';
+import Settings from './pages/Settings';
+import Privacy from './pages/Privacy';
+import Contact from './pages/Contact';
+import ComingSoon from './pages/ComingSoon';
+
+function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [userName, setUserName] = useState<string | null>(null);
+
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const response = await fetch('/api/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUserName(data.user.name);
+          setUserRole(data.user.role);
+          localStorage.setItem('peachstack_user_name', data.user.name);
+          localStorage.setItem('peachstack_user_role', data.user.role);
+        } else {
+          setUserName(localStorage.getItem('peachstack_user_name'));
+          setUserRole(localStorage.getItem('peachstack_user_role'));
+        }
+      } catch (error) {
+        setUserName(localStorage.getItem('peachstack_user_name'));
+        setUserRole(localStorage.getItem('peachstack_user_role'));
+      }
+    };
+    
+    checkUser();
+    // Listen for storage changes (for same-tab updates)
+    window.addEventListener('storage', checkUser);
+    
+    // Check every second as a simple way to react to same-tab localStorage changes 
+    // since 'storage' event only fires on other tabs
+    const interval = setInterval(checkUser, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', checkUser);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+      localStorage.removeItem('peachstack_user_name');
+      localStorage.removeItem('peachstack_user_role');
+      localStorage.removeItem('peachstack_user_university');
+      localStorage.removeItem('peachstack_user_year');
+      setUserName(null);
+      setUserRole(null);
+      toast.success('Signed out successfully');
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error('Logout failed');
+    }
+  };
+
+  const navLinks: { name: string; path: string; icon: any }[] = userName ? (
+    userRole === 'employer' ? [
+      { name: 'Dashboard', path: '/employer', icon: PeachLogo },
+      { name: 'Contact', path: '/contact', icon: Mail },
+    ] : [
+      { name: 'Workspace', path: '/workspace', icon: PeachLogo },
+      { name: 'Profile', path: '/student', icon: GraduationCap },
+      { name: 'Contact', path: '/contact', icon: Mail },
+    ]
+  ) : [
+    { name: 'For Students', path: '/student/signup', icon: GraduationCap },
+    { name: 'For Employers', path: '/for-employers', icon: Building2 },
+    { name: 'Contact', path: '/contact', icon: Mail },
+  ];
+
+  return (
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
+      <Toaster position="top-center" richColors />
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="flex items-center justify-center transition-transform group-hover:scale-105">
+              <PeachLogo size={32} />
+            </div>
+            <span className="font-display text-xl font-bold tracking-tight text-slate-900">
+              Peach<span className="text-peach-500">stack</span>
+            </span>
+          </Link>
+        </div>
+
+        {/* Desktop Nav */}
+        <div className="hidden md:flex md:items-center md:gap-8">
+          {navLinks.map((link) => {
+            const isHashLink = link.path.startsWith('/#');
+            const content = (
+              <>
+                <link.icon size={18} />
+                {link.name}
+              </>
+            );
+
+            if (isHashLink) {
+              return (
+                <a
+                  key={link.path}
+                  href={link.path}
+                  onClick={(e) => {
+                    if (location.pathname === '/') {
+                      e.preventDefault();
+                      const id = link.path.replace('/#', '');
+                      const element = document.getElementById(id);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 text-sm font-medium transition-colors hover:text-peach-500 text-slate-600"
+                  )}
+                >
+                  {content}
+                </a>
+              );
+            }
+
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={cn(
+                  "flex items-center gap-2 text-sm font-medium transition-colors hover:text-peach-500",
+                  location.pathname === link.path ? "text-peach-500" : "text-slate-600"
+                )}
+              >
+                {content}
+              </Link>
+            );
+          })}
+          {userName ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-sm font-bold text-slate-900 transition-all hover:bg-slate-100 active:scale-95"
+              >
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-peach-500 text-[10px] text-white">
+                  {userName.charAt(0)}
+                </div>
+                <span>{userName}</span>
+                <ChevronDown size={16} className={cn("transition-transform duration-200", isUserMenuOpen && "rotate-180")} />
+              </button>
+
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setIsUserMenuOpen(false)} 
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-slate-100 bg-white p-2 shadow-xl z-20"
+                    >
+                      <div className="px-3 py-2 border-b border-slate-50 mb-1">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Account</p>
+                      </div>
+                      <Link
+                        to={userRole === 'employer' ? '/employer' : '/student'}
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-peach-500 transition-colors"
+                      >
+                        <User size={18} />
+                        Profile
+                      </Link>
+                      <Link
+                        to="/settings"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-peach-500 transition-colors"
+                      >
+                        <SettingsIcon size={18} />
+                        Settings
+                      </Link>
+                      <div className="h-px bg-slate-50 my-1" />
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={18} />
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <Link
+                to="/login"
+                className="text-sm font-bold text-slate-600 hover:text-peach-500 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/get-started"
+                className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95"
+              >
+                Get Started
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="flex md:hidden">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center justify-center rounded-md p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:outline-none"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Nav */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-b border-slate-100 bg-white md:hidden"
+          >
+            <div className="space-y-1 px-4 pb-6 pt-2">
+              {navLinks.map((link) => {
+                const isHashLink = link.path.startsWith('/#');
+                const content = (
+                  <>
+                    <link.icon size={20} />
+                    {link.name}
+                  </>
+                );
+
+                if (isHashLink) {
+                  return (
+                    <a
+                      key={link.path}
+                      href={link.path}
+                      onClick={(e) => {
+                        setIsOpen(false);
+                        if (location.pathname === '/') {
+                          e.preventDefault();
+                          const id = link.path.replace('/#', '');
+                          const element = document.getElementById(id);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }
+                      }}
+                      className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-peach-500"
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-peach-500"
+                  >
+                    {content}
+                  </Link>
+                );
+              })}
+              <div className="pt-4 space-y-3">
+                {userName ? (
+                  <div className="space-y-1">
+                    <div className="px-3 py-2 border-b border-slate-50 mb-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Account</p>
+                    </div>
+                    <Link
+                      to={userRole === 'employer' ? '/employer' : '/student'}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-peach-500"
+                    >
+                      <User size={20} />
+                      Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-peach-500"
+                    >
+                      <SettingsIcon size={20} />
+                      Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        handleSignOut();
+                      }}
+                      className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl bg-red-50 py-3 text-base font-bold text-red-600"
+                    >
+                      <LogOut size={20} />
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex w-full items-center justify-center rounded-xl border border-slate-200 py-3 text-base font-bold text-slate-900"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/get-started"
+                      onClick={() => setIsOpen(false)}
+                      className="flex w-full items-center justify-center rounded-xl bg-peach-500 py-3 text-base font-bold text-white shadow-lg shadow-peach-100"
+                    >
+                      Join the Stack
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-slate-950 text-slate-400 py-16 border-t border-slate-900">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-12 mb-16">
+          {/* Logo and Tagline */}
+          <div className="md:col-span-4">
+            <Link to="/" className="flex items-center gap-2 mb-6">
+              <PeachLogo size={32} />
+              <span className="font-display text-2xl font-bold tracking-tight text-white">
+                Peach<span className="text-peach-500">stack</span>
+              </span>
+            </Link>
+            <p className="max-w-xs text-base leading-relaxed mb-8">
+              Building the professional stack for the next generation of corporate leaders. Bridging the gap between ambition and opportunity.
+            </p>
+            <div className="flex gap-4">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-peach-500 hover:text-white transition-all">
+                <Twitter size={18} />
+              </a>
+              <a href="https://www.linkedin.com/company/peach-stack/" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-peach-500 hover:text-white transition-all">
+                <Linkedin size={18} />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-peach-500 hover:text-white transition-all">
+                <Instagram size={18} />
+              </a>
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center hover:bg-peach-500 hover:text-white transition-all">
+                <Github size={18} />
+              </a>
+            </div>
+          </div>
+
+          {/* Columns */}
+          <div className="md:col-span-2">
+            <h4 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Platform</h4>
+            <ul className="space-y-4 text-sm">
+              <li><Link to="/student/signup" className="hover:text-peach-500 transition-colors">For Students</Link></li>
+              <li><Link to="/for-employers" className="hover:text-peach-500 transition-colors">For Employers</Link></li>
+              <li><Link to="/quests" className="hover:text-peach-500 transition-colors">Quests</Link></li>
+              <li><Link to="/community" className="hover:text-peach-500 transition-colors">Community</Link></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-2">
+            <h4 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Resources</h4>
+            <ul className="space-y-4 text-sm">
+              <li><Link to="/contact" className="hover:text-peach-500 transition-colors">Support</Link></li>
+              <li><Link to="/blog" className="hover:text-peach-500 transition-colors">Blog</Link></li>
+              <li><Link to="/developers" className="hover:text-peach-500 transition-colors">Developers</Link></li>
+              <li><Link to="/feedback" className="hover:text-peach-500 transition-colors">Feedback</Link></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-2">
+            <h4 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Company</h4>
+            <ul className="space-y-4 text-sm">
+              <li><a href="/#about" className="hover:text-peach-500 transition-colors">About Us</a></li>
+              <li><Link to="/creators" className="hover:text-peach-500 transition-colors">Creators</Link></li>
+              <li><Link to="/safety" className="hover:text-peach-500 transition-colors">Safety</Link></li>
+              <li><Link to="/guidelines" className="hover:text-peach-500 transition-colors">Guidelines</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-wrap justify-center md:justify-start gap-x-8 gap-y-2 text-xs font-medium">
+            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link to="/cookies" className="hover:text-white transition-colors">Cookie Settings</Link>
+            <Link to="/company" className="hover:text-white transition-colors">Company Information</Link>
+          </div>
+          <p className="text-xs text-slate-500">
+            &copy; {new Date().getFullYear()} Peachstack. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <div className="flex min-h-screen flex-col font-sans">
+        <Navbar />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/employer" element={<EmployerDashboard />} />
+            <Route path="/workspace" element={<Workspace />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/for-employers" element={<ForEmployers />} />
+            <Route path="/student/signup" element={<StudentSignup />} />
+            <Route path="/employer/onboarding" element={<EmployerOnboarding />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/quests" element={<ComingSoon />} />
+            <Route path="/community" element={<ComingSoon />} />
+            <Route path="/blog" element={<ComingSoon />} />
+            <Route path="/developers" element={<ComingSoon />} />
+            <Route path="/feedback" element={<ComingSoon />} />
+            <Route path="/creators" element={<ComingSoon />} />
+            <Route path="/safety" element={<ComingSoon />} />
+            <Route path="/guidelines" element={<ComingSoon />} />
+            <Route path="/terms" element={<ComingSoon />} />
+            <Route path="/cookies" element={<ComingSoon />} />
+            <Route path="/company" element={<ComingSoon />} />
+            <Route path="*" element={<ComingSoon />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
+  );
+}

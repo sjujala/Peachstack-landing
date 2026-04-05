@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-peach-50: #fff5f2;
+  --color-peach-100: #ffe8e0;
+  --color-peach-200: #ffd1c2;
+  --color-peach-300: #ffb099;
+  --color-peach-400: #ff8266;
+  --color-peach-500: #ff6347; /* Tomato-ish peach */
+  --color-peach-600: #f24a2e;
+  --color-peach-700: #cc3621;
+  --color-peach-800: #a82f1f;
+  --color-peach-900: #8a2a1d;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-slate-900 antialiased;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+
