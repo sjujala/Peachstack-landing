@@ -15,7 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "peachstack-super-secret-key";
 const PORT = 3000;
 
 // Resend setup
-const resend = new Resend("re_Vsnfvc7g_3Dj1Zzne7kKdDit2Mm7orzxF");
+const resend = new Resend(process.env.RESEND_API_KEY || 're_hDVQdpBc_MCtewQMYAF6TnFb4p9Av2o2R');
 
 const sendStudentWelcomeEmail = async (studentData: any) => {
   const { firstName, lastName, email, birthday, university, major, year, additionalAcademicDetails, whyOpportunity } = studentData;
@@ -290,7 +290,26 @@ async function startServer() {
       UPDATE student_profiles 
       SET university = ?, major = ?, minor = ?, year = ?, skills = ?, bio = ?, profile_picture_url = ?
       WHERE user_id = ?
-    `).run(university, major, minor, year, JSON.stringify(skills), bio, profile_picture_url, req.params.id);
+    `).run(university, major, minor, year, JSON.stringify(skills), bio, profile_picture_url, req.params.id)
+    // Send email notification
+    try {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: 'peachstackadmin@gmail.com',
+        subject: 'New Student Signup - Peachstack',
+        html: `<div style="font-family:sans-serif;max-width:600px">
+          <h2 style="color:#f97316">New Student Signup</h2>
+          <table style="border-collapse:collapse;width:100%">
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>University</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${university || 'N/A'}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb"><strong>Major</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${major || 'N/A'}</td></tr>
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Minor</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${minor || 'N/A'}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb"><strong>Year</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${year || 'N/A'}</td></tr>
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Skills</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${Array.isArray(skills) ? skills.join(', ') : (skills || 'N/A')}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb"><strong>Bio</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${bio || 'N/A'}</td></tr>
+          </table>
+        </div>`
+      });
+    } catch (emailErr) { console.error('Email send error:', emailErr); };
     res.json({ message: "Profile updated" });
   });
 
@@ -322,6 +341,24 @@ async function startServer() {
       INSERT INTO projects (id, title, description, employer_id, skills_required, deadline, compensation)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(id, title, description, req.user.id, JSON.stringify(skills_required), deadline, compensation);
+    // Send email notification
+    try {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: 'peachstackadmin@gmail.com',
+        subject: 'New Employer Listing - Peachstack',
+        html: `<div style="font-family:sans-serif;max-width:600px">
+          <h2 style="color:#f97316">New Employer Listing</h2>
+          <table style="border-collapse:collapse;width:100%">
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Title</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${title || 'N/A'}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb"><strong>Description</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${description || 'N/A'}</td></tr>
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Skills Required</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${Array.isArray(skills_required) ? skills_required.join(', ') : (skills_required || 'N/A')}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb"><strong>Deadline</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${deadline || 'N/A'}</td></tr>
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Compensation</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${compensation || 'N/A'}</td></tr>
+          </table>
+        </div>`
+      });
+    } catch (emailErr) { console.error('Email send error:', emailErr); }
     res.status(201).json({ id, message: "Project created" });
   });
 
@@ -345,6 +382,22 @@ async function startServer() {
   app.post("/api/contact", (req, res) => {
     const { name, email, message } = req.body;
     db.prepare("INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)").run(name, email, message);
+    // Send email notification
+    try {
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: 'peachstackadmin@gmail.com',
+        subject: 'New Contact Form Message - Peachstack',
+        html: `<div style="font-family:sans-serif;max-width:600px">
+          <h2 style="color:#f97316">New Contact Form Submission</h2>
+          <table style="border-collapse:collapse;width:100%">
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Name</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${name || 'N/A'}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #e5e7eb"><strong>Email</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${email || 'N/A'}</td></tr>
+            <tr style="background:#f3f4f6"><td style="padding:8px;border:1px solid #e5e7eb"><strong>Message</strong></td><td style="padding:8px;border:1px solid #e5e7eb">${message || 'N/A'}</td></tr>
+          </table>
+        </div>`
+      });
+    } catch (emailErr) { console.error('Email send error:', emailErr); }
     res.status(201).json({ message: "Message sent" });
   });
 
