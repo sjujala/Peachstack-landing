@@ -12,10 +12,23 @@ export default function Contact() {
     message: ''
   });
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    toast.success('Message sent! We will get back to you within 24 hours.');
-    setFormData({ name: '', email: '', subject: 'Student Inquiry', message: '' });
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Message sent! We will get back to you within 24 hours.');
+      setName(''); setEmail(''); setSubject('Student Inquiry'); setMessage('');
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
