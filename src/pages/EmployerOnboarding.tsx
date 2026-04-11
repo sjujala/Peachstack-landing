@@ -17,14 +17,19 @@ export default function EmployerOnboarding() {
     invoiceFile: null as File | null
   });
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < 2) {
-      setStep(2);
-      return;
+    try {
+      const res = await fetch('/api/employer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Thank you! We will be in touch shortly.');
+    } catch {
+      toast.error('Something went wrong. Please try again.');
     }
-    toast.success('Onboarding complete! Your project and invoice have been submitted for review.');
-    setTimeout(() => navigate('/employer'), 1500);
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
