@@ -400,7 +400,7 @@ function Footer() {
             <h4 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Platform</h4>
             <ul className="space-y-4 text-sm">
               <li><Link to="/apply" className="hover:text-peach-500 transition-colors">Apply</Link></li>
-              <li><Link to="/apply" className="hover:text-peach-500 transition-colors">For Students</Link></li>
+              <li><Link to="/for-employers" className="hover:text-peach-500 transition-colors">For Employers</Link></li>
               <li><Link to="/for-employers" className="hover:text-peach-500 transition-colors">For Employers</Link></li>
               <li><Link to="/quests" className="hover:text-peach-500 transition-colors">Quests</Link></li>
               <li><Link to="/community" className="hover:text-peach-500 transition-colors">Community</Link></li>
