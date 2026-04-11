@@ -28,7 +28,7 @@ export default function Landing() {
               </p>
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link
-                  to="/get-started"
+                  to="/apply"
                   className="flex items-center justify-center gap-2 rounded-2xl bg-peach-500 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-peach-200 transition-all hover:bg-peach-600 hover:shadow-peach-300 active:scale-95"
                 >
                   Join as a Student
@@ -344,7 +344,7 @@ export default function Landing() {
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
-                  to="/get-started"
+                  to="/apply"
                   className="w-full rounded-2xl bg-peach-500 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-peach-600 sm:w-auto"
                 >
                   Start as Student
