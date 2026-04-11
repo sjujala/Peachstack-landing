@@ -27,29 +27,17 @@ export default function StudentSignup() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (step < 3) {
-      setStep(step + 1);
-      return;
-    }
-    
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/student-onboarding', {
+      const res = await fetch('/api/student-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-
-      if (response.ok) {
-        setIsSubmitted(true);
-        toast.success('Application submitted successfully!');
-      } else {
-        const data = await response.json();
-        toast.error(data.message || 'Failed to submit application');
-      }
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast.error('An error occurred during signup');
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Application submitted successfully!');
+    } catch {
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
