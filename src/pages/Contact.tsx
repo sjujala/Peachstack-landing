@@ -1,36 +1,8 @@
 import { motion } from 'motion/react';
-import { Mail, Send, MessageSquare, Sparkles, CheckCircle2 } from 'lucide-react';
-import { useState, FormEvent } from 'react';
-import { toast } from 'sonner';
+import { Mail, Sparkles, CheckCircle2, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: 'Student Inquiry',
-    message: ''
-  });
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, subject, message }),
-      });
-      if (!res.ok) throw new Error('Failed');
-      toast.success('Message sent! We will get back to you within 24 hours.');
-      setName(''); setEmail(''); setSubject('Student Inquiry'); setMessage('');
-    } catch {
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -48,107 +20,66 @@ export default function Contact() {
               Let's build your <span className="text-peach-500 italic">stack</span> together.
             </h1>
             <p className="text-lg text-slate-600 mb-12 leading-relaxed">
-              Whether you're a student looking to launch your career or an employer seeking top talent, we're here to help.
+              Whether you're a student looking to launch your career or an employer seeking top talent, we're here to help. Reach out directly and we'll get back to you.
             </p>
 
             <div className="space-y-8">
-              {[
-                { icon: Mail, title: 'Email Us', desc: 'PeachStackAdmin@gmail.com', color: 'bg-blue-50 text-blue-600' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-6">
-                  <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-sm", item.color)}>
-                    <item.icon size={28} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900">{item.title}</h3>
-                    <p className="text-slate-600">{item.desc}</p>
-                  </div>
+              <div className="flex items-center gap-6">
+                <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-sm", "bg-blue-50 text-blue-600")}>
+                  <Mail size={28} />
                 </div>
-              ))}
+                <div>
+                  <h3 className="font-bold text-slate-900">Email Us</h3>
+                  <a
+                    href="mailto:peachstackadmin@gmail.com"
+                    className="text-peach-500 font-medium hover:underline"
+                  >
+                    peachstackadmin@gmail.com
+                  </a>
+                </div>
+              </div>
             </div>
 
             <div className="mt-16 p-8 rounded-3xl bg-slate-900 text-white relative overflow-hidden">
               <div className="relative z-10">
                 <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
                   <MessageSquare size={20} className="text-peach-400" />
-                  Live Support
+                  Response Time
                 </h4>
-                <p className="text-slate-400 text-sm mb-6">Our support team is available Monday - Friday, 9am - 6pm EST.</p>
+                <p className="text-slate-400 text-sm mb-6">Our team reviews emails Monday – Friday. We aim to respond within 1–2 business days.</p>
                 <div className="flex items-center gap-2 text-xs font-bold text-green-400">
                   <CheckCircle2 size={14} />
-                  Average response time: 2 hours
+                  Average response time: 24 hours
                 </div>
               </div>
               <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-peach-500/10 blur-2xl" />
             </div>
           </motion.div>
 
-          {/* Right Side: Form */}
+          {/* Right Side: Email CTA */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 p-10 lg:p-12"
+            className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 p-10 lg:p-12 flex flex-col items-center justify-center text-center"
           >
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={e => setFormData({...formData, name: e.target.value})}
-                    placeholder="John Doe"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm focus:border-peach-500 focus:outline-none focus:ring-2 focus:ring-peach-500/20 transition-all"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                    placeholder="john@example.com"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm focus:border-peach-500 focus:outline-none focus:ring-2 focus:ring-peach-500/20 transition-all"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Subject</label>
-                <select
-                  value={formData.subject}
-                  onChange={e => setFormData({...formData, subject: e.target.value})}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm focus:border-peach-500 focus:outline-none focus:ring-2 focus:ring-peach-500/20 transition-all"
-                >
-                  <option value="Student Inquiry">Student Inquiry</option>
-                  <option value="Employer Partnership">Employer Partnership</option>
-                  <option value="Media Inquiry">Media Inquiry</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Message</label>
-                <textarea
-                  required
-                  rows={6}
-                  value={formData.message}
-                  onChange={e => setFormData({...formData, message: e.target.value})}
-                  placeholder="How can we help you?"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm focus:border-peach-500 focus:outline-none focus:ring-2 focus:ring-peach-500/20 transition-all"
-                />
-              </div>
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-peach-500 py-4 font-bold text-white shadow-lg shadow-peach-100 transition-all hover:bg-peach-600 active:scale-95"
-              >
-                Send Message
-                <Send size={20} />
-              </button>
-            </form>
+            <div className="h-20 w-20 rounded-3xl bg-blue-50 flex items-center justify-center text-blue-600 mb-8">
+              <Mail size={40} />
+            </div>
+            <h2 className="font-display text-3xl font-bold text-slate-900 mb-4">Send us an email</h2>
+            <p className="text-slate-600 mb-8 leading-relaxed max-w-sm">
+              Have a question, partnership inquiry, or just want to say hello? Drop us a line and we'll get back to you shortly.
+            </p>
+            <a
+              href="mailto:peachstackadmin@gmail.com"
+              className="flex items-center justify-center gap-2 rounded-xl bg-peach-500 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-peach-100 transition-all hover:bg-peach-600 active:scale-95 w-full"
+            >
+              <Mail size={20} />
+              peachstackadmin@gmail.com
+            </a>
           </motion.div>
         </div>
       </div>
     </div>
   );
 }
+

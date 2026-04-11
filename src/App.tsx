@@ -19,6 +19,7 @@ import Workspace from './pages/Workspace';
 import Settings from './pages/Settings';
 import Privacy from './pages/Privacy';
 import Contact from './pages/Contact';
+import Apply from './pages/Apply';
 import ComingSoon from './pages/ComingSoon';
 
 function Navbar() {
@@ -91,7 +92,7 @@ function Navbar() {
       { name: 'Contact', path: '/contact', icon: Mail },
     ]
   ) : [
-    { name: 'For Students', path: '/student/signup', icon: GraduationCap },
+    { name: 'For Students', path: '/apply', icon: GraduationCap },
     { name: 'For Employers', path: '/for-employers', icon: Building2 },
     { name: 'Contact', path: '/contact', icon: Mail },
   ];
@@ -398,7 +399,8 @@ function Footer() {
           <div className="md:col-span-2">
             <h4 className="text-sm font-bold uppercase tracking-widest text-white mb-6">Platform</h4>
             <ul className="space-y-4 text-sm">
-              <li><Link to="/student/signup" className="hover:text-peach-500 transition-colors">For Students</Link></li>
+              <li><Link to="/apply" className="hover:text-peach-500 transition-colors">Apply</Link></li>
+              <li><Link to="/apply" className="hover:text-peach-500 transition-colors">For Students</Link></li>
               <li><Link to="/for-employers" className="hover:text-peach-500 transition-colors">For Employers</Link></li>
               <li><Link to="/quests" className="hover:text-peach-500 transition-colors">Quests</Link></li>
               <li><Link to="/community" className="hover:text-peach-500 transition-colors">Community</Link></li>
@@ -458,7 +460,8 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/get-started" element={<GetStarted />} />
             <Route path="/for-employers" element={<ForEmployers />} />
-            <Route path="/student/signup" element={<StudentSignup />} />
+            <Route path="/apply" element={<Apply />} />
+            <Route path="/student/signup" element={<Apply />} />
             <Route path="/employer/onboarding" element={<EmployerOnboarding />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/contact" element={<Contact />} />
