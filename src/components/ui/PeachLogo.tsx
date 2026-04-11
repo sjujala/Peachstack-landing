@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 
 interface PeachLogoProps {
   className?: string;
@@ -13,7 +12,7 @@ export function PeachLogo({ className, size = 40 }: PeachLogoProps) {
       viewBox="0 0 100 110"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn(className)}
+      className={(className)}
     >
       {/* Green stem */}
       <path d="M50 28 Q52 18 58 12" stroke="#3a8c3f" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
