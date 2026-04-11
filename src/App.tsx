@@ -5,6 +5,7 @@ import PeachLogo from './components/ui/PeachLogo';
 import { useState, useEffect } from 'react';
 import { cn } from './lib/utils';
 import { Toaster, toast } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
 
 // Pages
 import Landing from './pages/Landing';
@@ -529,6 +530,7 @@ export default function App() {
   return (
     <Router>
       <MainApp />
+      <Analytics />
     </Router>
   );
 }
