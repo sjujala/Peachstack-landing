@@ -37,8 +37,9 @@ export default function AdminDashboard() {
     </div>
   );
 
-  const taskCompletionPct = metrics && (metrics.completedTasks + metrics.totalTasks) > 0
-    ? Math.round((metrics.completedTasks / (metrics.completedTasks + metrics.totalTasks)) * 100)
+  const allTasks = (metrics?.completedTasks ?? 0) + (metrics?.totalTasks ?? 0);
+  const taskCompletionPct = allTasks > 0
+    ? Math.round(((metrics?.completedTasks ?? 0) / allTasks) * 100)
     : 0;
 
   return (

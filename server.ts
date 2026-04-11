@@ -563,6 +563,8 @@ async function startServer() {
     });
   };
 
+  const adminApiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false });
+
   // ─── Admin Auth ──────────────────────────────────────────────────────────────
   app.post('/api/admin/login', loginLimiter, async (req, res) => {
     const { email, password } = req.body;
@@ -579,13 +581,13 @@ async function startServer() {
     res.json({ user: { id: user.id, email: user.email, role: user.role, name: user.name, isSuperadmin: !!user.is_superadmin } });
   });
 
-  app.post('/api/admin/logout', requireAdmin, (req, res) => {
+  app.post('/api/admin/logout', adminApiLimiter, requireAdmin, (req, res) => {
     res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'none' });
     res.json({ message: 'Logged out' });
   });
 
   // ─── Dashboard Metrics ───────────────────────────────────────────────────────
-  app.get('/api/admin/metrics', requireAdmin, (req, res) => {
+  app.get('/api/admin/metrics', adminApiLimiter, requireAdmin, (req, res) => {
     const totalInterns = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'student' AND is_active = 1").get() as any;
     const totalApplications = db.prepare("SELECT COUNT(*) as count FROM applications").get() as any;
     const pendingApplications = db.prepare("SELECT COUNT(*) as count FROM applications WHERE status = 'pending'").get() as any;
@@ -601,12 +603,12 @@ async function startServer() {
   });
 
   // ─── Admin Users (Team Management) ──────────────────────────────────────────
-  app.get('/api/admin/users', requireAdmin, (req, res) => {
+  app.get('/api/admin/users', adminApiLimiter, requireAdmin, (req, res) => {
     const admins = db.prepare("SELECT id, email, name, role, is_superadmin, is_active, created_at, last_login FROM users WHERE role = 'admin' OR role = 'superadmin' OR is_superadmin = 1").all();
     res.json(admins);
   });
 
-  app.post('/api/admin/users', requireSuperadmin, async (req, res) => {
+  app.post('/api/admin/users', adminApiLimiter, requireSuperadmin, async (req, res) => {
     const { email, name, password, isSuperadmin } = req.body;
     if (!email || !name || !password) return res.status(400).json({ message: 'Email, name, and password required' });
     const id = crypto.randomUUID();
@@ -621,7 +623,7 @@ async function startServer() {
     }
   });
 
-  app.patch('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  app.patch('/api/admin/users/:id', adminApiLimiter, requireAdmin, async (req, res) => {
     const { name, email, is_active, is_superadmin, password } = req.body;
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id) as any;
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -635,13 +637,13 @@ async function startServer() {
     res.json({ message: 'User updated' });
   });
 
-  app.delete('/api/admin/users/:id', requireSuperadmin, (req, res) => {
+  app.delete('/api/admin/users/:id', adminApiLimiter, requireSuperadmin, (req, res) => {
     db.prepare('UPDATE users SET is_active = 0, token_version = token_version + 1 WHERE id = ?').run(req.params.id);
     res.json({ message: 'User deactivated' });
   });
 
   // ─── Intern Management ───────────────────────────────────────────────────────
-  app.get('/api/admin/interns', requireAdmin, (req, res) => {
+  app.get('/api/admin/interns', adminApiLimiter, requireAdmin, (req, res) => {
     const { search, status, page = '1', limit = '20' } = req.query as any;
     let query = `SELECT u.id, u.email, u.name, u.created_at, u.last_login, u.is_active, sp.university, sp.major, sp.year FROM users u LEFT JOIN student_profiles sp ON u.id = sp.user_id WHERE u.role = 'student'`;
     const params: any[] = [];
@@ -657,7 +659,7 @@ async function startServer() {
     res.json({ data: interns, total, page: parseInt(page), limit: parseInt(limit) });
   });
 
-  app.get('/api/admin/interns/:id', requireAdmin, (req, res) => {
+  app.get('/api/admin/interns/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const intern = db.prepare(`SELECT u.*, sp.* FROM users u LEFT JOIN student_profiles sp ON u.id = sp.user_id WHERE u.id = ? AND u.role = 'student'`).get(req.params.id) as any;
     if (!intern) return res.status(404).json({ message: 'Not found' });
     intern.skills = JSON.parse(intern.skills || '[]');
@@ -667,14 +669,14 @@ async function startServer() {
     res.json({ ...intern, tasks, applications });
   });
 
-  app.patch('/api/admin/interns/:id', requireAdmin, (req, res) => {
+  app.patch('/api/admin/interns/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const { is_active } = req.body;
     if (is_active !== undefined) db.prepare('UPDATE users SET is_active = ? WHERE id = ?').run(is_active ? 1 : 0, req.params.id);
     res.json({ message: 'Updated' });
   });
 
   // ─── Task Management ─────────────────────────────────────────────────────────
-  app.get('/api/admin/tasks', requireAdmin, (req, res) => {
+  app.get('/api/admin/tasks', adminApiLimiter, requireAdmin, (req, res) => {
     const { status, assignee, priority, page = '1', limit = '50' } = req.query as any;
     let query = `SELECT t.*, u.name as assignee_name, c.name as creator_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id LEFT JOIN users c ON t.created_by = c.id WHERE 1=1`;
     const params: any[] = [];
@@ -689,7 +691,7 @@ async function startServer() {
     res.json({ data: tasks, total, page: parseInt(page), limit: parseInt(limit) });
   });
 
-  app.post('/api/admin/tasks', requireAdmin, (req, res) => {
+  app.post('/api/admin/tasks', adminApiLimiter, requireAdmin, (req, res) => {
     const { title, description, assigned_to, project_id, priority, due_date, estimated_hours, tags } = req.body;
     if (!title || !description) return res.status(400).json({ message: 'Title and description required' });
     const id = crypto.randomUUID();
@@ -699,7 +701,7 @@ async function startServer() {
     res.status(201).json({ id, message: 'Task created' });
   });
 
-  app.get('/api/admin/tasks/:id', requireAdmin, (req, res) => {
+  app.get('/api/admin/tasks/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const task = db.prepare(`SELECT t.*, u.name as assignee_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id WHERE t.id = ?`).get(req.params.id) as any;
     if (!task) return res.status(404).json({ message: 'Not found' });
     task.tags = JSON.parse(task.tags || '[]');
@@ -708,7 +710,7 @@ async function startServer() {
     res.json({ ...task, comments, activity });
   });
 
-  app.patch('/api/admin/tasks/:id', requireAdmin, (req, res) => {
+  app.patch('/api/admin/tasks/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id) as any;
     if (!task) return res.status(404).json({ message: 'Not found' });
     const { title, description, status, priority, assigned_to, due_date, estimated_hours, actual_hours, tags } = req.body;
@@ -723,12 +725,12 @@ async function startServer() {
     res.json({ message: 'Updated' });
   });
 
-  app.delete('/api/admin/tasks/:id', requireAdmin, (req, res) => {
+  app.delete('/api/admin/tasks/:id', adminApiLimiter, requireAdmin, (req, res) => {
     db.prepare('DELETE FROM tasks WHERE id = ?').run(req.params.id);
     res.json({ message: 'Deleted' });
   });
 
-  app.post('/api/admin/tasks/:id/comments', requireAdmin, (req, res) => {
+  app.post('/api/admin/tasks/:id/comments', adminApiLimiter, requireAdmin, (req, res) => {
     const { content } = req.body;
     if (!content) return res.status(400).json({ message: 'Content required' });
     const id = crypto.randomUUID();
@@ -769,12 +771,12 @@ async function startServer() {
   });
 
   // ─── Cohorts ─────────────────────────────────────────────────────────────────
-  app.get('/api/admin/cohorts', requireAdmin, (req, res) => {
+  app.get('/api/admin/cohorts', adminApiLimiter, requireAdmin, (req, res) => {
     const cohorts = db.prepare(`SELECT c.*, (SELECT COUNT(*) FROM cohort_members cm WHERE cm.cohort_id = c.id AND cm.status = 'active') as member_count FROM cohorts c ORDER BY c.created_at DESC`).all();
     res.json(cohorts);
   });
 
-  app.post('/api/admin/cohorts', requireAdmin, (req, res) => {
+  app.post('/api/admin/cohorts', adminApiLimiter, requireAdmin, (req, res) => {
     const { name, start_date, end_date, max_capacity, fee_amount } = req.body;
     if (!name) return res.status(400).json({ message: 'Name required' });
     const id = crypto.randomUUID();
@@ -782,20 +784,20 @@ async function startServer() {
     res.status(201).json({ id });
   });
 
-  app.patch('/api/admin/cohorts/:id', requireAdmin, (req, res) => {
+  app.patch('/api/admin/cohorts/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const { name, status, start_date, end_date, max_capacity, fee_amount } = req.body;
     db.prepare('UPDATE cohorts SET name = COALESCE(?, name), status = COALESCE(?, status), start_date = COALESCE(?, start_date), end_date = COALESCE(?, end_date), max_capacity = COALESCE(?, max_capacity), fee_amount = COALESCE(?, fee_amount) WHERE id = ?').run(name || null, status || null, start_date || null, end_date || null, max_capacity || null, fee_amount || null, req.params.id);
     res.json({ message: 'Updated' });
   });
 
-  app.get('/api/admin/cohorts/:id', requireAdmin, (req, res) => {
+  app.get('/api/admin/cohorts/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const cohort = db.prepare('SELECT * FROM cohorts WHERE id = ?').get(req.params.id) as any;
     if (!cohort) return res.status(404).json({ message: 'Not found' });
     const members = db.prepare(`SELECT cm.*, u.name, u.email FROM cohort_members cm JOIN users u ON cm.user_id = u.id WHERE cm.cohort_id = ?`).all(req.params.id);
     res.json({ ...cohort, members });
   });
 
-  app.post('/api/admin/cohorts/:id/members', requireAdmin, (req, res) => {
+  app.post('/api/admin/cohorts/:id/members', adminApiLimiter, requireAdmin, (req, res) => {
     const { user_id } = req.body;
     try {
       db.prepare('INSERT INTO cohort_members (cohort_id, user_id) VALUES (?, ?)').run(req.params.id, user_id);
@@ -804,24 +806,24 @@ async function startServer() {
   });
 
   // ─── Communications ───────────────────────────────────────────────────────────
-  app.get('/api/admin/contacts', requireAdmin, (req, res) => {
+  app.get('/api/admin/contacts', adminApiLimiter, requireAdmin, (req, res) => {
     const contacts = db.prepare('SELECT * FROM contact_submissions ORDER BY submitted_at DESC').all();
     res.json(contacts);
   });
 
-  app.patch('/api/admin/contacts/:id', requireAdmin, (req, res) => {
+  app.patch('/api/admin/contacts/:id', adminApiLimiter, requireAdmin, (req, res) => {
     const { is_read, is_archived } = req.body;
     if (is_read !== undefined) db.prepare('UPDATE contact_submissions SET is_read = ? WHERE id = ?').run(is_read ? 1 : 0, req.params.id);
     if (is_archived !== undefined) db.prepare('UPDATE contact_submissions SET is_archived = ? WHERE id = ?').run(is_archived ? 1 : 0, req.params.id);
     res.json({ message: 'Updated' });
   });
 
-  app.get('/api/admin/announcements', requireAdmin, (req, res) => {
+  app.get('/api/admin/announcements', adminApiLimiter, requireAdmin, (req, res) => {
     const announcements = db.prepare('SELECT a.*, u.name as creator_name FROM announcements a JOIN users u ON a.created_by = u.id ORDER BY a.is_pinned DESC, a.created_at DESC').all();
     res.json(announcements);
   });
 
-  app.post('/api/admin/announcements', requireAdmin, (req, res) => {
+  app.post('/api/admin/announcements', adminApiLimiter, requireAdmin, (req, res) => {
     const { title, content, is_pinned } = req.body;
     if (!title || !content) return res.status(400).json({ message: 'Title and content required' });
     const id = crypto.randomUUID();
@@ -835,7 +837,7 @@ async function startServer() {
   });
 
   // ─── Analytics ────────────────────────────────────────────────────────────────
-  app.get('/api/admin/analytics', requireAdmin, (req, res) => {
+  app.get('/api/admin/analytics', adminApiLimiter, requireAdmin, (req, res) => {
     const tasksByStatus = db.prepare("SELECT status, COUNT(*) as count FROM tasks GROUP BY status").all();
     const tasksByPriority = db.prepare("SELECT priority, COUNT(*) as count FROM tasks GROUP BY priority").all();
     const internActivity = db.prepare("SELECT u.name, COUNT(t.id) as task_count, SUM(CASE WHEN t.status='completed' THEN 1 ELSE 0 END) as completed FROM users u LEFT JOIN tasks t ON t.assigned_to = u.id WHERE u.role = 'student' GROUP BY u.id ORDER BY task_count DESC LIMIT 10").all();
@@ -844,7 +846,7 @@ async function startServer() {
   });
 
   // ─── Projects (admin) ─────────────────────────────────────────────────────────
-  app.get('/api/admin/projects', requireAdmin, (req, res) => {
+  app.get('/api/admin/projects', adminApiLimiter, requireAdmin, (req, res) => {
     const projects = db.prepare('SELECT * FROM projects ORDER BY created_at DESC').all().map((p: any) => ({ ...p, skills_required: JSON.parse(p.skills_required || '[]') }));
     res.json(projects);
   });
