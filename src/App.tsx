@@ -403,7 +403,6 @@ function Footer() {
             <ul className="space-y-4 text-sm">
               <li><Link to="/apply" className="hover:text-peach-500 transition-colors">Apply</Link></li>
               <li><Link to="/for-employers" className="hover:text-peach-500 transition-colors">For Employers</Link></li>
-              <li><Link to="/for-employers" className="hover:text-peach-500 transition-colors">For Employers</Link></li>
               <li><Link to="/quests" className="hover:text-peach-500 transition-colors">Quests</Link></li>
               <li><Link to="/community" className="hover:text-peach-500 transition-colors">Community</Link></li>
             </ul>
