@@ -24,6 +24,22 @@ import Contact from './pages/Contact';
 import Apply from './pages/Apply';
 import ComingSoon from './pages/ComingSoon';
 
+// Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminInterns from './pages/admin/Interns';
+import AdminInternDetail from './pages/admin/InternDetail';
+import AdminTasks from './pages/admin/Tasks';
+import AdminTaskCreate from './pages/admin/TaskCreate';
+import AdminTaskDetail from './pages/admin/TaskDetail';
+import AdminProjects from './pages/admin/Projects';
+import AdminCohorts from './pages/admin/Cohorts';
+import AdminCommunications from './pages/admin/Communications';
+import AdminAnalytics from './pages/admin/Analytics';
+import AdminSettings from './pages/admin/Settings';
+import AdminTeam from './pages/admin/Team';
+
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
@@ -446,42 +462,73 @@ function Footer() {
   );
 }
 
+function MainApp() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  if (isAdminRoute) {
+    return (
+      <Routes>
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="interns" element={<AdminInterns />} />
+          <Route path="interns/:id" element={<AdminInternDetail />} />
+          <Route path="tasks" element={<AdminTasks />} />
+          <Route path="tasks/create" element={<AdminTaskCreate />} />
+          <Route path="tasks/:id" element={<AdminTaskDetail />} />
+          <Route path="projects" element={<AdminProjects />} />
+          <Route path="cohorts" element={<AdminCohorts />} />
+          <Route path="communications" element={<AdminCommunications />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="team" element={<AdminTeam />} />
+        </Route>
+      </Routes>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col font-sans">
+      <Navbar />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/student" element={<StudentDashboard />} />
+          <Route path="/employer" element={<EmployerDashboard />} />
+          <Route path="/workspace" element={<Workspace />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/get-started" element={<GetStarted />} />
+          <Route path="/for-employers" element={<ForEmployers />} />
+          <Route path="/apply" element={<Apply />} />
+          <Route path="/student/signup" element={<Apply />} />
+          <Route path="/employer/onboarding" element={<EmployerOnboarding />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/cookies" element={<Cookies />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/quests" element={<ComingSoon />} />
+          <Route path="/community" element={<ComingSoon />} />
+          <Route path="/blog" element={<ComingSoon />} />
+          <Route path="/developers" element={<ComingSoon />} />
+          <Route path="/feedback" element={<ComingSoon />} />
+          <Route path="/creators" element={<ComingSoon />} />
+          <Route path="/safety" element={<ComingSoon />} />
+          <Route path="/guidelines" element={<ComingSoon />} />
+          <Route path="/company" element={<ComingSoon />} />
+          <Route path="*" element={<ComingSoon />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Router>
-      <div className="flex min-h-screen flex-col font-sans">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/student" element={<StudentDashboard />} />
-            <Route path="/employer" element={<EmployerDashboard />} />
-            <Route path="/workspace" element={<Workspace />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/get-started" element={<GetStarted />} />
-            <Route path="/for-employers" element={<ForEmployers />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/student/signup" element={<Apply />} />
-            <Route path="/employer/onboarding" element={<EmployerOnboarding />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/cookies" element={<Cookies />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/quests" element={<ComingSoon />} />
-            <Route path="/community" element={<ComingSoon />} />
-            <Route path="/blog" element={<ComingSoon />} />
-            <Route path="/developers" element={<ComingSoon />} />
-            <Route path="/feedback" element={<ComingSoon />} />
-            <Route path="/creators" element={<ComingSoon />} />
-            <Route path="/safety" element={<ComingSoon />} />
-            <Route path="/guidelines" element={<ComingSoon />} />
-            <Route path="/company" element={<ComingSoon />} />
-            <Route path="*" element={<ComingSoon />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <MainApp />
     </Router>
   );
 }

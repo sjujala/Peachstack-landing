@@ -2,14 +2,16 @@ import { motion } from 'motion/react';
 import { CheckCircle2, Clock, Briefcase, Calendar, ChevronRight, Layout, ListTodo, MessageSquare, Star, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
+import { apiUrl } from '../lib/api';
 
-interface Task {
+interface ApiTask {
   id: string;
   title: string;
-  project: string;
-  deadline: string;
-  priority: 'High' | 'Medium' | 'Low';
-  completed: boolean;
+  status: string;
+  priority: string;
+  due_date?: string;
+  creator_name?: string;
+  tags: string[];
 }
 
 interface ActiveProject {
@@ -21,29 +23,41 @@ interface ActiveProject {
   tasksRemaining: number;
 }
 
-const MOCK_TASKS: Task[] = [
-  { id: '1', title: 'Complete Market Research Audit', project: 'Goldman Sachs Audit', deadline: 'Today, 5 PM', priority: 'High', completed: false },
-  { id: '2', title: 'Draft Executive Summary', project: 'Goldman Sachs Audit', deadline: 'Tomorrow', priority: 'Medium', completed: false },
-  { id: '3', title: 'Clean Social Media Dataset', project: 'Nike Strategy', deadline: 'Mar 28', priority: 'High', completed: false },
-  { id: '4', title: 'Submit Weekly Progress Report', project: 'Nike Strategy', deadline: 'Mar 29', priority: 'Low', completed: true },
-];
-
 const MOCK_ACTIVE_PROJECTS: ActiveProject[] = [
   { id: 'p1', title: 'Market Competitor Audit', company: 'Goldman Sachs', progress: 65, nextDeadline: 'Mar 26', tasksRemaining: 4 },
   { id: 'p2', title: 'Gen Z Brand Strategy', company: 'Nike', progress: 30, nextDeadline: 'Apr 02', tasksRemaining: 8 },
 ];
 
 export default function Workspace() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+  const [tasks, setTasks] = useState<ApiTask[]>([]);
   const [userName, setUserName] = useState('Student');
+  const [loadingTasks, setLoadingTasks] = useState(true);
 
   useEffect(() => {
     const savedName = localStorage.getItem('peachstack_user_name');
     if (savedName) setUserName(savedName.split(' ')[0]);
+
+    fetch(apiUrl('/api/tasks/mine'), { credentials: 'include' })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTasks(Array.isArray(data) ? data : []))
+      .catch(() => setTasks([]))
+      .finally(() => setLoadingTasks(false));
   }, []);
 
-  const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  const updateTaskStatus = async (id: string, status: string) => {
+    await fetch(apiUrl(`/api/tasks/${id}`), {
+      method: 'PATCH', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+  };
+
+  const getPriorityLabel = (priority: string) => priority.charAt(0).toUpperCase() + priority.slice(1);
+  const getPriorityStyle = (priority: string) => {
+    if (priority === 'urgent' || priority === 'high') return 'bg-red-50 text-red-600';
+    if (priority === 'medium') return 'bg-amber-50 text-amber-600';
+    return 'bg-blue-50 text-blue-600';
   };
 
   return (
@@ -127,55 +141,63 @@ export default function Workspace() {
                   <ListTodo className="text-peach-500" size={20} />
                   Your Tasks
                 </h2>
-                <div className="flex gap-2">
-                  <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-600 border border-slate-100 shadow-sm">All</button>
-                  <button className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-400">Today</button>
+              </div>
+              {loadingTasks ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-7 w-7 border-4 border-peach-500 border-t-transparent rounded-full animate-spin" />
                 </div>
-              </div>
-              <div className="space-y-3">
-                {tasks.map((task) => (
-                  <motion.div
-                    key={task.id}
-                    layout
-                    className={cn(
-                      "flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 transition-all",
-                      task.completed ? "opacity-60 grayscale" : "hover:shadow-sm"
-                    )}
-                  >
-                    <button 
-                      onClick={() => toggleTask(task.id)}
-                      className={cn(
-                        "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-all",
-                        task.completed 
-                          ? "bg-green-500 border-green-500 text-white" 
-                          : "border-slate-200 hover:border-peach-500"
-                      )}
-                    >
-                      {task.completed && <CheckCircle2 size={14} />}
-                    </button>
-                    <div className="flex-grow">
-                      <h4 className={cn("text-sm font-bold text-slate-900", task.completed && "line-through")}>
-                        {task.title}
-                      </h4>
-                      <p className="text-xs text-slate-500">{task.project}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                        <Clock size={14} />
-                        {task.deadline}
-                      </div>
-                      <span className={cn(
-                        "rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider",
-                        task.priority === 'High' ? "bg-red-50 text-red-600" :
-                        task.priority === 'Medium' ? "bg-amber-50 text-amber-600" :
-                        "bg-blue-50 text-blue-600"
-                      )}>
-                        {task.priority}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-slate-100">
+                  <ListTodo size={28} className="mx-auto mb-2 opacity-40" />
+                  <p className="text-sm font-medium">No tasks assigned yet</p>
+                  <p className="text-xs mt-1">Check back when your admin assigns tasks to you</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {tasks.map((task) => {
+                    const isCompleted = task.status === 'completed';
+                    return (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        className={cn(
+                          "flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 transition-all",
+                          isCompleted ? "opacity-60 grayscale" : "hover:shadow-sm"
+                        )}
+                      >
+                        <button 
+                          onClick={() => updateTaskStatus(task.id, isCompleted ? 'open' : 'in_review')}
+                          className={cn(
+                            "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-all",
+                            isCompleted 
+                              ? "bg-green-500 border-green-500 text-white" 
+                              : "border-slate-200 hover:border-peach-500"
+                          )}
+                        >
+                          {isCompleted && <CheckCircle2 size={14} />}
+                        </button>
+                        <div className="flex-grow">
+                          <h4 className={cn("text-sm font-bold text-slate-900", isCompleted && "line-through")}>
+                            {task.title}
+                          </h4>
+                          {task.creator_name && <p className="text-xs text-slate-500">From: {task.creator_name}</p>}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {task.due_date && (
+                            <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                              <Clock size={14} />
+                              {new Date(task.due_date).toLocaleDateString()}
+                            </div>
+                          )}
+                          <span className={cn("rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider", getPriorityStyle(task.priority))}>
+                            {getPriorityLabel(task.priority)}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           </div>
 
