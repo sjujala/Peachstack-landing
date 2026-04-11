@@ -1,37 +1,24 @@
+import React from 'react';
 
-interface PeachLogoProps {
-  className?: string;
-  size?: number;
-}
-
-export function PeachLogo({ className, size = 40 }: PeachLogoProps) {
+export default function PeachLogo({ className = '' }: { className?: string }) {
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 110"
+      className={className}
+      viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={(className)}
+      aria-label="Peachstack logo"
     >
-      {/* Green stem */}
-      <path d="M50 28 Q52 18 58 12" stroke="#3a8c3f" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
-      {/* Green leaf */}
-      <path d="M58 12 Q72 8 68 22 Q60 26 52 20 Z" fill="#3a8c3f"/>
-      {/* Peach heart outline */}
       <path
-        d="M50 38 C50 38 28 26 28 44 C28 58 50 74 50 74 C50 74 72 58 72 44 C72 26 50 38 50 38 Z"
-        fill="none"
-        stroke="#E8816A"
-        strokeWidth="5"
-        strokeLinejoin="round"
+        d="M20 4C12 4 6 10 6 18C6 26 12 36 20 36C28 36 34 26 34 18C34 10 28 4 20 4Z"
+        fill="#f97316"
+        opacity="0.9"
       />
-      {/* Bar 1: cream */}
-      <rect x="35" y="46" width="30" height="7" rx="3.5" fill="#F5ECD7"/>
-      {/* Bar 2: orange */}
-      <rect x="35" y="56" width="30" height="7" rx="3.5" fill="#E07840"/>
-      {/* Bar 3: dark orange */}
-      <rect x="35" y="66" width="30" height="7" rx="3.5" fill="#C05020"/>
+      <rect x="12" y="14" width="16" height="3" rx="1.5" fill="white" />
+      <rect x="12" y="20" width="16" height="3" rx="1.5" fill="white" />
+      <rect x="12" y="26" width="10" height="3" rx="1.5" fill="white" />
+      <path d="M20 2C20 2 22 0 24 1" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M20 2C20 2 19 0 17 0.5" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
