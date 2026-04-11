@@ -18,6 +18,8 @@ import Login from './pages/Login';
 import Workspace from './pages/Workspace';
 import Settings from './pages/Settings';
 import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Cookies from './pages/Cookies';
 import Contact from './pages/Contact';
 import Apply from './pages/Apply';
 import ComingSoon from './pages/ComingSoon';
@@ -464,6 +466,8 @@ export default function App() {
             <Route path="/student/signup" element={<Apply />} />
             <Route path="/employer/onboarding" element={<EmployerOnboarding />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/cookies" element={<Cookies />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/quests" element={<ComingSoon />} />
             <Route path="/community" element={<ComingSoon />} />
@@ -473,8 +477,6 @@ export default function App() {
             <Route path="/creators" element={<ComingSoon />} />
             <Route path="/safety" element={<ComingSoon />} />
             <Route path="/guidelines" element={<ComingSoon />} />
-            <Route path="/terms" element={<ComingSoon />} />
-            <Route path="/cookies" element={<ComingSoon />} />
             <Route path="/company" element={<ComingSoon />} />
             <Route path="*" element={<ComingSoon />} />
           </Routes>
