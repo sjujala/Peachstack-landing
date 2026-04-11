@@ -564,6 +564,21 @@ async function startServer() {
   };
 
   const adminApiLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false });
+  const studentApiLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false });
+
+  // CSRF protection: verify Origin header on all state-changing requests
+  const csrfCheck = (req: any, res: any, next: any) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+    const origin = req.headers.origin as string | undefined;
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : ['http://localhost:3000', 'https://sjujala.github.io'];
+    if (origin && !allowedOrigins.includes(origin)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    next();
+  };
+  app.use(csrfCheck);
 
   // ─── Admin Auth ──────────────────────────────────────────────────────────────
   app.post('/api/admin/login', loginLimiter, async (req, res) => {
@@ -741,13 +756,13 @@ async function startServer() {
   });
 
   // Intern task view (student-facing)
-  app.get('/api/tasks/mine', authenticate, (req: any, res: any) => {
+  app.get('/api/tasks/mine', studentApiLimiter, authenticate, (req: any, res: any) => {
     if (req.user.role !== 'student') return res.status(403).json({ message: 'Students only' });
     const tasks = db.prepare(`SELECT t.*, u.name as creator_name FROM tasks t LEFT JOIN users u ON t.created_by = u.id WHERE t.assigned_to = ? ORDER BY t.created_at DESC`).all(req.user.id).map((t: any) => ({ ...t, tags: JSON.parse(t.tags || '[]') }));
     res.json(tasks);
   });
 
-  app.patch('/api/tasks/:id', authenticate, (req: any, res: any) => {
+  app.patch('/api/tasks/:id', studentApiLimiter, authenticate, (req: any, res: any) => {
     const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id) as any;
     if (!task) return res.status(404).json({ message: 'Not found' });
     if (req.user.role === 'student') {
@@ -760,7 +775,7 @@ async function startServer() {
     res.json({ message: 'Updated' });
   });
 
-  app.post('/api/tasks/:id/comments', authenticate, (req: any, res: any) => {
+  app.post('/api/tasks/:id/comments', studentApiLimiter, authenticate, (req: any, res: any) => {
     const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id) as any;
     if (!task) return res.status(404).json({ message: 'Not found' });
     if (req.user.role === 'student' && task.assigned_to !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
@@ -831,7 +846,7 @@ async function startServer() {
     res.status(201).json({ id });
   });
 
-  app.get('/api/announcements', authenticate, (req, res) => {
+  app.get('/api/announcements', studentApiLimiter, authenticate, (req, res) => {
     const announcements = db.prepare('SELECT * FROM announcements ORDER BY is_pinned DESC, created_at DESC LIMIT 10').all();
     res.json(announcements);
   });
